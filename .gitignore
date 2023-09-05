@@ -49,6 +49,7 @@ Temp/
 Library/
 obj/
 bin/
+.vs/
 
 # Rider
 .idea/
