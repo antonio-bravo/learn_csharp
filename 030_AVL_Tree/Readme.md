@@ -75,6 +75,27 @@ La última parte del código muestra la característica de búsqueda del árbol 
   
 Fácil, conveniente y sin un esfuerzo de desarrollo significativo: eso describe con bastante precisión el proceso de aplicar uno de los paquetes disponibles para admitir árboles AVL. Al usarlo, no necesitas preparar un código complejo por tu cuenta y la cantidad de posibles problemas puede limitarse significativamente.
 
+
+**Árboles rojo-negros**
+
+Un árbol rojo-negro, también conocido como RBT por sus siglas en inglés, es la siguiente variante de los árboles binarios de búsqueda autoequilibrados. Como variante de los BST (árboles de búsqueda binaria), esta estructura de datos requiere que se mantengan las reglas estándar de los BST. Además, se deben tener en cuenta las siguientes reglas:
+
+- Cada nodo debe estar coloreado ya sea de rojo o negro. Por lo tanto, es necesario agregar datos adicionales a un nodo que almacene su color.
+- Todos los nodos con valores no pueden ser nodos hoja. Por esta razón, se deben usar nodos seudónimos NIL como hojas en el árbol, mientras que todos los demás nodos son nodos internos. Además, todos los nodos seudónimos NIL deben ser negros.
+- Si un nodo es rojo, ambos de sus hijos deben ser negros.
+- Para cualquier nodo, el número de nodos negros en la ruta hacia una hoja descendiente (es decir, el nodo seudónimo NIL) debe ser el mismo.
+
+El árbol RBT adecuado se presenta en el siguiente diagrama:
+![](./images/2.png)
+
+El árbol consta de nueve nodos, cada uno coloreado de rojo o negro. Vale la pena mencionar los nodos seudónimos NIL, que se agregan como nodos hoja. Si observas nuevamente el conjunto de reglas mencionadas anteriormente, puedes confirmar que todas estas reglas se mantienen en este caso.
+
+Al igual que los árboles AVL, los RBT también deben mantener las reglas después de agregar o eliminar un nodo. En este caso, el proceso de restaurar las propiedades de los RBT es aún más complicado, ya que implica tanto la recoloración como las rotaciones. Afortunadamente, no es necesario conocer y entender los detalles internos, que son bastante complejos, para beneficiarse de esta estructura de datos y aplicarla en tus proyectos.
+
+Al hablar de esta variante de BST autoequilibrados, también vale la pena mencionar el rendimiento. Tanto en los escenarios promedio como en los peores casos, las operaciones de inserción, eliminación y búsqueda son de complejidad O(log n), por lo que son iguales que en el caso de los árboles AVL y mucho mejores en los peores casos en comparación con los BST.
+
+Puedes encontrar más información sobre los RBT en https://en.wikipedia.org/wiki/Red-black_tree.
+Ya has aprendido información básica sobre los RBT, así que procedamos a la implementación utilizando una de las bibliotecas disponibles.
 <!-- <a id="in-english"></a>
 **<span id="in-english" span style="font-size: larger;">Example – hierarchy of identifiers(#in-english)</span>** -->
 
@@ -148,3 +169,23 @@ The last part of code shows the lookup feature of the AVL tree, using the FindNo
     - Children of node 8 (height = 2): 7 and 9.
 
 Easy, convenient, and without significant development effort—that quite precisely describes the process of applying one of the available packages to support AVL trees. By using it, you do not need to prepare complex code on your own and the number of possible problems can be significantly limited.
+
+**Red-black trees**
+A Red-black tree, also referred to as an RBT, is the next variant of the self-balancing binary search trees. As a variant of BSTs, this data structure requires that the standard BST rules be maintained. Moreover, the following rules must be taken into account:
+
+- Each node must be colored either red or black. Thus, you need to add additional data for a node that stores a color.
+- All nodes with values cannot be leaf nodes. For this reason, the NIL pseudo-nodes should be used as leaves in the tree, while all other nodes are internal ones. Moreover, all NIL pseudo-nodes must be black.
+- If a node is red, both its children must be black.
+- For any node, the number of black nodes on the route to a descendant leaf (that is, the NIL pseudo-node) must be the same.
+  
+The proper RBT is presented in the following diagram:
+![](./images/2.png)
+
+The tree consists of nine nodes, each colored red or black. It is worth mentioning the NIL pseudo-nodes, which are added as leaf nodes. If you again take a look at the set of rules listed afore, you can confirm that all such rules are maintained in this case.
+
+Similarly to AVL trees, RBTs also must maintain the rules after adding or removing a node. In this case, the process of restoring the RBT properties is even more complicated, because it involves both recoloring and rotations. Fortunately, you do not need to know and understand the internal details, which are quite complex, to benefit from this data structure and apply it in your projects.
+
+While talking about this variant of self-balancing BSTs, it is also worth noting the performance. In both average and worst-case scenarios, insertion, removal, and lookup are O(log n) operations, so they are the same as in the case of the AVL trees and much better in worst-case scenarios in comparison with the BSTs.
+
+You can find more information about RBTs at https://en.wikipedia.org/wiki/Red-black_tree.
+You have already learned some basic information about RBTs, so let's proceed to the implementation using one of the available libraries.
