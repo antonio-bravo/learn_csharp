@@ -473,6 +473,415 @@ Los resultados obtenidos son los siguientes:
 
 ¡Eso es todo! Acabas de completar el ejemplo relacionado con la aplicación del MST en el mundo real. ¿Estás listo para continuar con otro tema relacionado con los grafos, llamado coloreo?
 
+**Coloración**
+
+El tema de encontrar el Árbol de Expansión Mínima (MST, por sus siglas en inglés) no es el único problema relacionado con grafos. Entre otros, existe la coloración de nodos. Su objetivo es asignar colores (números) a todos los nodos de manera que cumplan con la regla de que no puede haber una arista entre dos nodos del mismo color. Por supuesto, la cantidad de colores debe ser lo más baja posible. Este problema tiene algunas aplicaciones en el mundo real, como la coloración de un mapa, que es el tema del ejemplo que se muestra más adelante.
+
+¿Sabías que los nodos de cada grafo plano pueden ser coloreados con no más de cuatro colores? Si te interesa este tema, echa un vistazo al teorema de los cuatro colores (http://mathworld.wolfram.com/Four-ColorTheorem.html). La implementación del algoritmo de coloración que se muestra en este capítulo es simple y en algunos casos puede usar más colores de los realmente necesarios.
+
+Echemos un vistazo al siguiente diagrama:
+![](./images/8.png)
+
+El primer diagrama (mostrado a la izquierda) presenta un grafo que está coloreado con cuatro colores: rojo (índice igual a 0), verde (1), azul (2) y violeta (3). Como puedes ver, no hay nodos del mismo color conectados por una arista. El grafo mostrado a la derecha representa el grafo con dos aristas adicionales, a saber, (2, 6) y (2, 5). En este caso, la coloración ha cambiado, pero el número de colores sigue siendo el mismo.
+
+La pregunta es, ¿cómo puedes encontrar colores para los nodos que cumplan con la regla mencionada anteriormente? Afortunadamente, el algoritmo es muy simple y su implementación se presenta aquí. El código del método Color, que debe agregarse a la clase Graph, es el siguiente:
+```c#
+public int[] Color() 
+{ 
+    int[] colors = new int[Nodes.Count]; 
+    Fill(colors, -1); 
+    colors[0] = 0; 
+ 
+    bool[] availability = new bool[Nodes.Count]; 
+    for (int i = 1; i < Nodes.Count; i++) 
+    { 
+        Fill(availability, true); 
+ 
+        int colorIndex = 0; 
+        foreach (Node<T> neighbor in Nodes[i].Neighbors) 
+        { 
+            colorIndex = colors[neighbor.Index]; 
+            if (colorIndex >= 0) 
+            { 
+                availability[colorIndex] = false; 
+            } 
+        } 
+ 
+        colorIndex = 0; 
+        for (int j = 0; j < availability.Length; j++) 
+        { 
+            if (availability[j]) 
+            { 
+                colorIndex = j; 
+                break; 
+            } 
+        } 
+ 
+        colors[i] = colorIndex; 
+    } 
+ 
+    return colors; 
+}
+```
+El método Color utiliza dos matrices auxiliares relacionadas con nodos. La primera se llama colores y almacena los índices de colores elegidos para nodos particulares. De forma predeterminada, los valores de todos los elementos se establecen en -1, excepto el primero, que se establece en 0. Esto significa que el color del primer nodo se establece automáticamente en el primer color (por ejemplo, rojo). La otra matriz auxiliar (disponibilidad) almacena información sobre la disponibilidad de colores particulares.
+
+La parte más crucial del código es el bucle for. Dentro de él, restableces la disponibilidad de colores estableciendo true como el valor de todos los elementos dentro de la matriz de disponibilidad. Luego, recorres los nodos vecinos del nodo actual para leer sus colores y marcas esos colores como no disponibles estableciendo false como valor de un elemento particular en la matriz de disponibilidad. El último bucle interno simplemente recorre la matriz de disponibilidad y encuentra el primer color disponible para el nodo actual.
+
+El código presentado se basa en la implementación mostrada en https://www.geeksforgeeks.org/graph-coloring-set-2-greedy-algorithm/. Además, puedes encontrar más información sobre el problema de la coloración allí.
+
+Además, el método auxiliar Fill se utiliza con exactamente el mismo código, como se explica en uno de los ejemplos anteriores. Simplemente establece los valores de todos los elementos en la matriz en el valor pasado como segundo parámetro. El código del método es el siguiente:
+```c#
+private void Fill<Q>(Q[] array, Q value) 
+{ 
+    for (int i = 0; i < array.Length; i++) 
+    { 
+        array[i] = value; 
+    } 
+}
+```
+
+Echemos un vistazo al uso del método Color:
+```c#
+Graph<int> graph = new Graph<int>(false, false); 
+Node<int> n1 = graph.AddNode(1); (...) 
+Node<int> n8 = graph.AddNode(8); 
+graph.AddEdge(n1, n2); (...) 
+graph.AddEdge(n7, n8); 
+ 
+int[] colors = graph.Color(); 
+for (int i = 0; i < colors.Length; i++) 
+{ 
+    Console.WriteLine($"Nodo {graph.Nodes[i].Data}: {colors[i]}"); 
+}
+```
+Aquí, creas un nuevo grafo no dirigido y no ponderado, agregas nodos y aristas, y llamas al método Color para realizar la coloración de nodos. Como resultado, obtienes una matriz con índices de colores para nodos particulares. Luego, presentas los resultados en la consola:
+
+    Nodo 1: 0
+    Nodo 2: 1
+    Nodo 3: 1
+    Nodo 4: 0
+    Nodo 5: 1
+    Nodo 6: 0
+    Nodo 7: 2
+    Nodo 8: 3
+
+Después de esta breve introducción, estás listo para proceder a la aplicación en el mundo real, en particular, para la coloración del mapa de voivodatos, que se presenta a continuación.
+
+-----
+Imagina que tienes un montón de puntos conectados en un dibujo llamado "grafo". Queremos pintar cada punto de diferentes colores, pero no podemos pintar dos puntos que están conectados con el mismo color.
+
+Primero, creamos una lista de colores y decimos que el primer punto se pinte de rojo.
+
+Luego, miramos el siguiente punto y vemos qué colores están disponibles (como una caja de crayones con algunos colores que aún no hemos usado). Si los amigos del punto ya están pintados de algún color, marcamos ese color como no disponible.
+
+Luego, elegimos el primer color disponible que encontramos en nuestra caja de crayones y pintamos el punto con ese color.
+
+Hacemos lo mismo para todos los puntos, mirando los colores disponibles y eligiendo uno para pintarlos.
+
+¡Y eso es! Ahora tenemos todos los puntos pintados de diferentes colores, y ningún punto conectado tiene el mismo color.
+
+En resumen, el código hace algo similar a lo que harías al pintar un dibujo. Ayuda a colorear puntos en un grafo de manera que los puntos conectados no tengan el mismo color.
+
+-----
+
+**Ejemplo - Mapa de voivodatos**
+
+Vamos a crear un programa que represente el mapa de voivodatos en Polonia como un grafo y coloree esas áreas de manera que dos voivodatos con fronteras comunes no tengan el mismo color. Por supuesto, debemos limitar la cantidad de colores.
+
+Para empezar, pensemos en cómo representar el grafo. Aquí, los nodos representan voivodatos particulares, mientras que las aristas representan las fronteras comunes entre voivodatos.
+
+El mapa de Polonia con el grafo ya coloreado se muestra en el siguiente diagrama:
+![](./images/9.png)
+
+Tu tarea es simplemente colorear los nodos en el grafo utilizando el algoritmo que ya hemos descrito. Para hacerlo, creamos un grafo no dirigido y no ponderado, agregamos nodos que representan voivodatos y agregamos aristas para indicar las fronteras comunes. El código es el siguiente:
+```c#
+Graph<string> graph = new Graph<string>(false, false); 
+Node<string> nodePK = graph.AddNode("PK"); (...) 
+Node<string> nodeOP = graph.AddNode("OP"); 
+graph.AddEdge(nodePK, nodeLU); (...) 
+graph.AddEdge(nodeDS, nodeOP);
+```
+Luego, llamamos al método Color en la instancia del Grafo y obtenemos los índices de colores para los nodos particulares. Al final, simplemente presentamos los resultados en la consola. La parte relevante del código es la siguiente:
+```c#
+int[] colors = graph.Color(); 
+for (int i = 0; i < colors.Length; i++) 
+{ 
+    Console.WriteLine($"{graph.Nodes[i].Data}: {colors[i]}"); 
+}
+```
+Parte de los resultados se presenta de la siguiente manera:
+
+    PK: 0
+    LU: 1 (...)
+    OP: 2
+
+¡Acabas de aprender cómo colorear los nodos en un grafo! Sin embargo, esto no es el final de los temas interesantes relacionados con los grafos que se presentan en este libro. Ahora, pasemos a buscar el camino más corto en el grafo.
+
+----
+
+En este ejemplo, estamos haciendo un juego con un mapa de regiones en Polonia, llamadas "voivodatos". Queremos colorear cada región de manera especial, pero hay una regla: si dos regiones tienen un borde en común, no pueden tener el mismo color.
+
+Primero, imaginemos que tenemos un mapa de Polonia con todas las regiones dibujadas como dibujos y líneas que conectan las regiones que comparten un borde.
+
+Luego, vamos a usar un programa de computadora para ayudarnos a dar colores a cada región. No podemos usar demasiados colores, queremos usar la menor cantidad posible.
+
+Para hacer esto, primero creamos una lista de colores, como si tuviéramos una caja de lápices de colores. Luego, vamos a cada región en el mapa y la pintamos con un color, pero asegurándonos de que las regiones vecinas tengan colores diferentes.
+
+El código que se muestra es como las instrucciones para la computadora. Creamos el mapa y le decimos qué regiones están conectadas (tienen un borde en común). Luego, le pedimos a la computadora que haga el trabajo de dar colores a las regiones. Al final, la computadora nos dice qué color tiene cada región.
+
+Entonces, cuando miramos los resultados en la pantalla de la computadora, vemos algo como "PK: 0", lo que significa que la región "PK" se pintó con el color número 0. Y así sucesivamente para todas las regiones.
+
+¡Y eso es! Aprendimos cómo usar una computadora para dar colores a regiones en un mapa de manera especial, sin que las regiones vecinas tengan el mismo color. ¡Es como pintar un libro para colorear en la computadora!
+
+----
+
+**Camino más corto**
+
+Un grafo es una excelente estructura de datos para almacenar información sobre diferentes mapas, como ciudades y las distancias entre ellas. Por esta razón, una de las aplicaciones del mundo real más obvias de los grafos es buscar el camino más corto entre dos ubicaciones, teniendo en cuenta un costo específico, como la distancia, el tiempo necesario o incluso la cantidad de combustible requerida.
+
+Existen varios enfoques para buscar el camino más corto en un grafo. Sin embargo, una de las soluciones comunes es el algoritmo de Dijkstra, que permite calcular la distancia desde un nodo de inicio hasta todos los nodos ubicados en el grafo. Luego, no solo puedes obtener el costo de la conexión entre dos nodos, sino también encontrar nodos que estén entre los nodos de inicio y final.
+
+El algoritmo de Dijkstra utiliza dos matrices auxiliares relacionadas con los nodos, una para almacenar un identificador del nodo anterior, es decir, el nodo desde el cual se puede llegar al nodo actual con el costo total más pequeño, y la otra para almacenar la distancia mínima (costo) necesaria para acceder al nodo actual. Además, utiliza una cola para almacenar los nodos que deben ser revisados. Durante las iteraciones consecutivas, el algoritmo actualiza las distancias mínimas a nodos particulares en el grafo. Al final, las matrices auxiliares contienen la distancia mínima (costo) para llegar a todos los nodos desde el nodo de inicio elegido, así como información sobre cómo llegar a cada nodo utilizando el camino más corto.
+
+Antes de continuar con el ejemplo, echemos un vistazo al siguiente diagrama que presenta dos caminos más cortos encontrados utilizando el algoritmo de Dijkstra. El lado izquierdo muestra el camino desde el nodo 8 al 1, mientras que el lado derecho muestra el camino desde el nodo 1 al 7:
+
+![](./images/10.png)
+
+Es hora de que veas algo de código en C# que se puede usar para implementar el algoritmo de Dijkstra. El papel principal lo desempeña el método GetShortestPathDijkstra, que debe agregarse a la clase Graph. El código es el siguiente:
+```c#
+public List<Edge<T>> GetShortestPathDijkstra( 
+    Node<T> source, Node<T> target) 
+{ 
+    int[] previous = new int[Nodes.Count]; 
+    Fill(previous, -1); 
+ 
+    int[] distances = new int[Nodes.Count]; 
+    Fill(distances, int.MaxValue); 
+    distances[source.Index] = 0; 
+ 
+    SimplePriorityQueue<Node<T>> nodes =  
+        new SimplePriorityQueue<Node<T>>(); 
+    for (int i = 0; i < Nodes.Count; i++) 
+    { 
+        nodes.Enqueue(Nodes[i], distances[i]); 
+    } 
+ 
+    while (nodes.Count != 0) 
+    { 
+        Node<T> node = nodes.Dequeue(); 
+        for (int i = 0; i < node.Neighbors.Count; i++) 
+        { 
+            Node<T> neighbor = node.Neighbors[i]; 
+            int weight = i < node.Weights.Count  
+                ? node.Weights[i] : 0; 
+            int weightTotal = distances[node.Index] + weight; 
+ 
+            if (distances[neighbor.Index] > weightTotal) 
+            { 
+                distances[neighbor.Index] = weightTotal; 
+                previous[neighbor.Index] = node.Index; 
+                nodes.UpdatePriority(neighbor,  
+                    distances[neighbor.Index]); 
+            } 
+        } 
+    } 
+ 
+    List<int> indices = new List<int>(); 
+    int index = target.Index; 
+    while (index >= 0) 
+    { 
+        indices.Add(index); 
+        index = previous[index]; 
+    } 
+ 
+    indices.Reverse(); 
+    List<Edge<T>> result = new List<Edge<T>>(); 
+    for (int i = 0; i < indices.Count - 1; i++) 
+    { 
+        Edge<T> edge = this[indices[i], indices[i + 1]]; 
+        result.Add(edge); 
+    } 
+    return result; 
+}
+```
+El método GetShortestPathDijkstra toma dos parámetros, los nodos de origen y destino. Para empezar, crea dos matrices auxiliares relacionadas con los nodos para almacenar los índices de los nodos anteriores, desde los cuales se puede llegar al nodo dado con el costo total más pequeño (previous), así como para almacenar las distancias mínimas actuales al nodo dado (distances). De forma predeterminada, los valores de todos los elementos en la matriz previous se establecen en -1, mientras que en la matriz distances se establecen en el valor máximo del tipo int. Por supuesto, la distancia al nodo fuente se establece en 0. Luego, crea una nueva cola de prioridad y encola los datos de todos los nodos. La prioridad de cada elemento es igual a la distancia actual a ese nodo.
+
+Es importante destacar que el ejemplo utiliza el paquete OptimizedPriorityQueue de NuGet. Puedes encontrar más información sobre este paquete en https://www.nuget.org/packages/OptimizedPriorityQueue y en la sección Colas de prioridad en el Capítulo 3, Pilas y colas.
+La parte más interesante del código es el bucle while que se ejecuta hasta que la cola esté vacía. Dentro del bucle while, obtienes el primer nodo de la cola y recorres todos sus vecinos utilizando el bucle for. Dentro de este bucle, calculas la distancia al vecino tomando la suma de la distancia al nodo actual y el peso de la arista. Si la distancia calculada es menor que el valor actual almacenado, actualizas los valores relativos a la distancia mínima al vecino, así como al índice del nodo anterior desde el cual puedes llegar al vecino. Es importante destacar que también se debe actualizar la prioridad del elemento en la cola.
+
+Las operaciones restantes se utilizan para resolver el camino utilizando los valores almacenados en la matriz previous. Para hacerlo, guardas los índices de los nodos siguientes (en dirección opuesta) en la lista de índices. Luego, la inviertes para obtener el orden desde el nodo fuente hasta el nodo objetivo. Al final, simplemente creas la lista de aristas para presentar el resultado en la forma adecuada para devolver desde el método.
+
+La implementación presentada y descrita se basa en el seudocódigo que se muestra en https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm. Puedes encontrar información adicional sobre el algoritmo de Dijkstra allí.
+Echemos un vistazo al uso del método GetShortestPathDijkstra:
+```c#
+Graph<int> graph = new Graph<int>(true, true); 
+Node<int> n1 = graph.AddNode(1); (...) 
+Node<int> n8 = graph.AddNode(8); 
+
+
+graph.AddEdge(n1, n2, 9); (...) 
+graph.AddEdge(n8, n5, 3); 
+List<Edge<int>> path = graph.GetShortestPathDijkstra(n1, n5); 
+path.ForEach(e => Console.WriteLine(e));
+```
+Aquí, creamos un nuevo grafo dirigido y ponderado, agregamos nodos y aristas, y llamamos al método GetShortestPathDijkstra para buscar el camino más corto entre dos nodos, es decir, entre los nodos 1 y 5. Como resultado, obtienes una lista de aristas que forman el camino más corto. Luego, simplemente iteras a través de todas las aristas y presentas los resultados en la consola:
+
+    Arista: 1 -> 3, peso: 5
+    Arista: 3 -> 4, peso: 12
+    Arista: 4 -> 8, peso: 8
+    Arista: 8 -> 5, peso: 3
+Después de esta breve introducción, junto con el ejemplo simple, ¡avancemos hacia una aplicación más avanzada e interesante relacionada con el desarrollo de juegos! ¡Vamos!
+
+---
+Imagina que tienes un mapa con ciudades y quieres encontrar la manera más rápida de llegar de una ciudad a otra. Puede ser que quieras saber cuánta distancia hay entre ellas o cuánto tiempo te llevará. También podrías querer saber cuánto combustible necesitas si estás conduciendo.
+
+Para hacer esto, podemos usar una especie de programa de computadora que nos ayuda a encontrar el camino más corto entre las ciudades en el mapa. Esto es útil si quieres saber cómo llegar de un lugar a otro de la manera más rápida.
+
+Una forma común de hacerlo es usando algo llamado "algoritmo de Dijkstra". Esto funciona como una especie de juego donde marcamos cuánto cuesta llegar de una ciudad a otra. El algoritmo nos ayuda a encontrar el camino más barato (o más corto) para llegar de una ciudad a otra.
+
+En el código que se muestra, hay un método llamado "GetShortestPathDijkstra" que hace todo este trabajo. Le decimos cuál es la ciudad de inicio y cuál es la ciudad de destino. Luego, el programa calcula cuál es la mejor forma de llegar desde la ciudad de inicio a la ciudad de destino, teniendo en cuenta los costos.
+
+Finalmente, el programa nos dice cuál es el camino más corto y cuánto cuesta. Es como si tuviéramos un mapa y una computadora nos dijera cómo llegar de un lugar a otro de la manera más rápida y barata.
+
+Espero que esto te haya ayudado a entender cómo funciona el algoritmo de Dijkstra para encontrar el camino más corto en un mapa. ¡Es como un juego de encontrar el camino más rápido en un mapa de ciudades!
+
+----
+
+**Ejemplo - Mapa de juego**
+
+El último ejemplo que se muestra en este capítulo involucra la aplicación del algoritmo de Dijkstra para encontrar el camino más corto en un mapa de juego. Imagina que tienes un tablero con varios obstáculos. Por esta razón, el jugador solo puede usar parte del tablero para moverse. Tu tarea es encontrar el camino más corto entre dos lugares ubicados en el tablero.
+
+Para empezar, representemos el tablero como una matriz bidimensional donde una posición dada en el tablero puede estar disponible para el movimiento o no. La parte adecuada del código debe agregarse al método Main en la clase Program, de la siguiente manera:
+```c#
+string[] lines = new string[] 
+{ 
+    "0011100000111110000011111", 
+    "0011100000111110000011111", 
+    "0011100000111110000011111", 
+    "0000000000011100000011111", 
+    "0000001110000000000011111", 
+    "0001001110011100000011111", 
+    "1111111111111110111111100", 
+    "1111111111111110111111101", 
+    "1111111111111110111111100", 
+    "0000000000000000111111110", 
+    "0000000000000000111111100", 
+    "0001111111001100000001101", 
+    "0001111111001100000001100", 
+    "0001100000000000111111110", 
+    "1111100000000000111111100", 
+    "1111100011001100100010001", 
+    "1111100011001100001000100" 
+};
+
+bool[][] map = new bool[lines.Length][]; 
+for (int i = 0; i < lines.Length; i++) 
+{ 
+    map[i] = lines[i] 
+        .Select(c => int.Parse(c.ToString()) == 0) 
+        .ToArray(); 
+}
+```
+Para mejorar la legibilidad del código, el mapa se representa como un conjunto de valores de cadena. Cada fila se presenta como texto, con el número de caracteres igual al número de columnas. El valor de cada carácter indica la disponibilidad del punto. Si es igual a 0, la posición está disponible. De lo contrario, no lo está. La representación del mapa en forma de cadena debe convertirse luego en una matriz booleana bidimensional. Esta tarea se realiza mediante unas líneas de código, como se muestra en el fragmento anterior.
+
+El siguiente paso es la creación del grafo, así como la adición de los nodos y aristas necesarios. La parte adecuada del código se presenta de la siguiente manera:
+```c#
+Graph<string> graph = new Graph<string>(false, true); 
+for (int i = 0; i < map.Length; i++) 
+{ 
+    for (int j = 0; j < map[i].Length; j++) 
+    { 
+        if (map[i][j]) 
+        { 
+            Node<string> from = graph.AddNode($"{i}-{j}"); 
+ 
+            if (i > 0 && map[i - 1][j]) 
+            { 
+                Node<string> to = graph.Nodes.Find( 
+                    n => n.Data == $"{i - 1}-{j}"); 
+                graph.AddEdge(from, to, 1); 
+            } 
+ 
+            if (j > 0 && map[i][j - 1]) 
+            { 
+                Node<string> to = graph.Nodes.Find( 
+                    n => n.Data == $"{i}-{j - 1}"); 
+                graph.AddEdge(from, to, 1); 
+            } 
+        } 
+    } 
+}
+```
+Primero, inicializas un nuevo grafo no dirigido y ponderado. Luego, utilizas dos bucles for para recorrer todos los lugares en el tablero. Dentro de estos bucles, verificas si el lugar dado está disponible. Si es así, creas un nuevo nodo (from). Luego, verificas si el nodo ubicado inmediatamente arriba del actual también está disponible. Si es así, se agrega una arista adecuada con un peso igual a 1. De manera similar, verificas si el nodo ubicado a la izquierda del actual está disponible y agregas una arista si es necesario.
+
+Ahora solo necesitas obtener las instancias de Node que representan los nodos de origen y destino. Puedes hacerlo utilizando el método Find y proporcionando la representación textual del nodo, como 0-0 o 16-24. Luego, simplemente llamas al método GetShortestPathDijkstra. En este caso, el algoritmo intentará encontrar el camino más corto entre el nodo en la primera fila y columna y el nodo en la última fila y columna. El código es el siguiente:
+```c#
+Node<string> source = graph.Nodes.Find(n => n.Data == "0-0"); 
+Node<string> target = graph.Nodes.Find(n => n.Data == "16-24"); 
+List<Edge<string>> path = graph.GetShortestPathDijkstra( 
+   source, target);
+```
+La última parte del código está relacionada con la presentación del mapa en la consola:
+```c#
+Console.OutputEncoding = Encoding.UTF8; 
+for (int row = 0; row < map.Length; row++) 
+{ 
+    for (int column = 0; column < map[row].Length; column++) 
+    { 
+        ConsoleColor color = map[row][column]  
+            ? ConsoleColor.Green : ConsoleColor.Red; 
+        if (path.Any(e => e.From.Data == $"{row}-{column}"  
+            || e.To.Data == $"{row}-{column}")) 
+        { 
+            color = ConsoleColor.White; 
+        } 
+ 
+        Console.ForegroundColor = color; 
+        Console.Write("\u25cf "); 
+    } 
+    Console.WriteLine
+
+(); 
+}
+
+Console.ForegroundColor = ConsoleColor.Gray;
+```
+Para empezar, se establece la codificación adecuada en la consola para poder presentar caracteres Unicode. Luego, se utilizan dos bucles for para recorrer todos los lugares en el tablero. Dentro de estos bucles, se elige un color que se debe usar para representar un punto en la consola, ya sea verde (el punto está disponible) o rojo (no está disponible). Si el punto analizado actualmente es parte del camino más corto, el color se cambia a blanco. Al final, solo se establece un color adecuado y se escribe el carácter Unicode que representa una bala. Cuando la ejecución del programa sale de ambos bucles, se restablece el color predeterminado de la consola.
+
+Cuando ejecutes la aplicación, verás el siguiente resultado:
+![](./images/11.png)
+
+¡Gran trabajo! Ahora, procedamos a un breve resumen para concluir los temas que has aprendido mientras leías el capítulo actual.
+
+**Resumen**
+
+Acabas de completar el capítulo relacionado con una de las estructuras de datos más importantes disponibles al desarrollar aplicaciones, a saber, los grafos. Como has aprendido, un grafo es una estructura de datos que consta de nodos y aristas. Cada arista conecta dos nodos. Además, existen varias variantes de aristas en un grafo, como no dirigidas y dirigidas, así como no ponderadas y ponderadas. Todas ellas se han descrito y explicado en detalle, junto con diagramas y ejemplos de código. También se han explicado dos métodos de representación de grafos, a saber, utilizando una lista de adyacencia y una matriz de adyacencia. Por supuesto, también has aprendido cómo implementar un grafo utilizando el lenguaje C#.
+
+Hablando de grafos, también es importante presentar algunas aplicaciones del mundo real, especialmente debido al uso común de esta estructura de datos. Por ejemplo, el capítulo contiene la descripción de la estructura de amigos disponibles en las redes sociales o el problema de buscar el camino más corto en una ciudad.
+
+Entre los temas de este capítulo, has aprendido cómo recorrer un grafo, es decir, visitar todos los nodos en un orden particular. Se han presentado dos enfoques, a saber, DFS y BFS. Vale la pena mencionar que el tema de la búsqueda se puede aplicar también para buscar un nodo específico en un grafo.
+
+En una de las otras secciones, se introdujo el tema de un árbol de expansión, así como un árbol de expansión mínimo. Como recordatorio, un árbol de expansión es un subconjunto de aristas que conecta todos los nodos en un grafo sin ciclos, mientras que un MST es un árbol de expansión con el costo mínimo de todos los árboles de expansión disponibles en el grafo. Hay varios enfoques para encontrar el MST, incluida la aplicación de los algoritmos de Kruskal o Prim.
+
+Luego, aprendiste soluciones para los dos problemas populares relacionados con grafos. El primero fue la coloración de nodos, donde necesitabas asignar colores (números) a todos los nodos de manera que no pudiera haber una arista entre dos nodos del mismo color. Por supuesto, el número de colores debía ser lo más bajo posible.
+
+El otro problema fue buscar el camino más corto entre dos nodos, teniendo en cuenta un costo específico, como la distancia, el tiempo necesario o incluso la cantidad de combustible requerida. Hay varios enfoques para el tema de buscar el camino más corto en un grafo. Sin embargo, una de las soluciones comunes es el algoritmo de Dijkstra, que permite calcular la distancia desde un nodo de inicio hasta todos los nodos ubicados en el grafo. Este tema se ha presentado y explicado en este capítulo.
+
+Ahora es el momento de pasar al resumen general para echar un vistazo a todas las estructuras de datos y algoritmos que se han presentado en el libro hasta ahora. ¡Demos vuelta a la página y pasemos al último capítulo!
+
+Mientras leías muchas páginas de este libro, has aprendido mucho sobre diversas estructuras de datos y algoritmos que puedes utilizar al desarrollar aplicaciones en el lenguaje C#. Arrays, listas, pilas, colas, diccionarios, conjuntos hash, árboles, montículos y grafos, así como los algoritmos que los acompañan, es una gama bastante amplia de temas, ¿verdad? Ahora es el momento adecuado para resumir este conocimiento, así como recordarte algunas aplicaciones específicas para estructuras particulares.
+
+En primer lugar, verás una breve clasificación de las estructuras de datos, divididas en dos grupos, lineales y no lineales. Luego, se tiene en cuenta el tema de la diversidad de aplicaciones de diversas estructuras de datos. Verás un resumen breve de cada estructura de datos descrita, así como información sobre algunos problemas que se pueden resolver utilizando una estructura de datos específica.
+
+¿Estás listo para comenzar a leer el último capítulo? Si es así, disfrutémoslo y veamos cuántos temas has aprendido mientras leías todos los capítulos anteriores. ¡Vamos allá!
+
+En este capítulo, se tratarán los siguientes temas:
+
+- Clasificación de estructuras de datos
+- Diversidad de aplicaciones
+
+
+
 <!-- <a id="in-english"></a>
 **<span id="in-english" span style="font-size: larger;">Example – hierarchy of identifiers(#in-english)</span>** -->
 
@@ -918,3 +1327,355 @@ The obtained results are as follows:
     Total cost: 139
   
 That's all! You have just completed the example relating to the real-world application of the MST. Are you ready to proceed to another graph-related subject, which is named coloring?
+
+
+**Coloring**
+
+The topic of finding the MST is not the only graph-related problem. Among others, node coloring exists. Its aim is to assign colors (numbers) to all nodes to comply with the rule that there cannot be an edge between two nodes with the same color. Of course, the number of colors should be as low as possible. Such a problem has some real-world applications, such as for coloring a map, which is the topic of the example shown later.
+
+Did you know that the nodes of each planar graph can be colored with no more than four colors? If you are interested in this topic, take a look at the four-color theorem (http://mathworld.wolfram.com/Four-ColorTheorem.html). The implementation of the coloring algorithm shown in this chapter is simple and in some cases could use more colors than really necessary.
+Let's take a look at the following diagram:
+![](./images/8.png)
+
+The first diagram (shown on the left) presents a graph that is colored using four colors: red (index equal to 0), green (1), blue (2), and violet (3). As you can see, there are no nodes with the same colors connected by an edge. The graph shown on the right depicts the graph with two additional edges, namely (2, 6) and (2, 5). In such a case, the coloring has changed, but the number of colors remains the same.
+
+The question is, how can you find colors for nodes to comply with the afore mentioned rule? Fortunately, the algorithm is very simple and its implementation is presented here. The code of the Color method, which should be added to the Graph class, is as follows:
+```c#
+public int[] Color() 
+{ 
+    int[] colors = new int[Nodes.Count]; 
+    Fill(colors, -1); 
+    colors[0] = 0; 
+ 
+    bool[] availability = new bool[Nodes.Count]; 
+    for (int i = 1; i < Nodes.Count; i++) 
+    { 
+        Fill(availability, true); 
+ 
+        int colorIndex = 0; 
+        foreach (Node<T> neighbor in Nodes[i].Neighbors) 
+        { 
+            colorIndex = colors[neighbor.Index]; 
+            if (colorIndex >= 0) 
+            { 
+                availability[colorIndex] = false; 
+            } 
+        } 
+ 
+        colorIndex = 0; 
+        for (int j = 0; j < availability.Length; j++) 
+        { 
+            if (availability[j]) 
+            { 
+                colorIndex = j; 
+                break; 
+            } 
+        } 
+ 
+        colors[i] = colorIndex; 
+    } 
+ 
+    return colors; 
+}
+```
+The Color method uses two auxiliary node-related arrays. The first is named colors and stores indices of colors chosen for particular nodes. By default, values of all elements are set to -1, except the first one, which is set to 0. It means that the color of the first node is automatically set to the first color (for example, red). The other auxiliary array (availability) stores information about the availability of particular colors.
+
+The most crucial part of the code is the for loop. Within it, you reset the availability of colors by setting true as the value of all elements within the availability array. Then, you iterate through the neighbor nodes of the current node to read their colors and mark such colors as unavailable by setting false as a value of a particular element in the availability array. The last inner for loop just iterates through the availability array and finds the first available color for the current node.
+
+The presented code is based on the implementation shown at https://www.geeksforgeeks.org/graph-coloring-set-2-greedy-algorithm/. What is more, you can find more information about the coloring problem there.
+What is more, the auxiliary Fill method is used with exactly the same code, as explained in one of the previous examples. It just sets the values of all elements in the array to the value passed as the second parameter. The code of the method is as follows:
+```c#
+private void Fill<Q>(Q[] array, Q value) 
+{ 
+    for (int i = 0; i < array.Length; i++) 
+    { 
+        array[i] = value; 
+    } 
+}
+```
+Let's take a look at the usage of the Color method:
+```c#
+Graph<int> graph = new Graph<int>(false, false); 
+Node<int> n1 = graph.AddNode(1); (...) 
+Node<int> n8 = graph.AddNode(8); 
+graph.AddEdge(n1, n2); (...) 
+graph.AddEdge(n7, n8); 
+ 
+int[] colors = graph.Color(); 
+for (int i = 0; i < colors.Length; i++) 
+{ 
+    Console.WriteLine($"Node {graph.Nodes[i].Data}: {colors[i]}"); 
+}
+```
+Here, you create a new undirected and unweighted graph, add nodes and edges, and call the Color method to perform the node coloring. As a result, you receive an array with indices of colors for particular nodes. Then, you present the results in the console:
+
+    Node 1: 0
+    Node 2: 1
+    Node 3: 1
+    Node 4: 0
+    Node 5: 1
+    Node 6: 0
+    Node 7: 2
+    Node 8: 3
+After this short introduction you are ready to proceed to the real-world application, namely for coloring the voivodeship map, which is presented next.
+
+**Example – voivodeship map**
+
+Let's create a program that represents the map of voivodeships in Poland as a graph, and color such areas so that two voivodeships with common borders do not have the same color. Of course, you should limit the number of colors.
+
+To start, let's think about the graph representation. Here, nodes represent particular voivodeships, while edges represent common borders between voivodeships.
+
+The map of Poland with the graph already colored is shown in the following diagram:
+![](./images/9.png)
+
+Your task is just to color nodes in the graph using the already-described algorithm. To do so, you create the undirected and unweighted graph, add nodes representing voivodeships, and add edges to indicate common borders. The code is as follows:
+```c#
+Graph<string> graph = new Graph<string>(false, false); 
+Node<string> nodePK = graph.AddNode("PK"); (...) 
+Node<string> nodeOP = graph.AddNode("OP"); 
+graph.AddEdge(nodePK, nodeLU); (...) 
+graph.AddEdge(nodeDS, nodeOP);
+```
+Then, the Color method is called on the Graph instance and the color indices for particular nodes are returned. At the end, you just present the results in the console. The suitable part of code is as follows:
+```c#
+int[] colors = graph.Color(); 
+for (int i = 0; i < colors.Length; i++) 
+{ 
+    Console.WriteLine($"{graph.Nodes[i].Data}: {colors[i]}"); 
+}
+```
+Part of the results is presented as follows:
+
+    PK: 0
+    LU: 1 (...)
+    OP: 2
+  
+You have just learnt how to color nodes in the graph! However, this is not the end of the interesting topics regarding graphs that are presented within this book. Now, let's proceed to searching for the shortest path in the graph.
+
+
+**Shortest path**
+
+A graph is a great data structure for storing the data of various maps, such as cities and the distances between them. For this reason, one of the obvious real-world applications of graphs is searching for the shortest path between two locations, which takes into account a specific cost, such as the distance, the necessary time, or even the amount of fuel required.
+
+There are several approaches to the topic of searching for the shortest path in a graph. However, one of the common solutions is Dijkstra's algorithm, which makes it possible to calculate distance from a starting node to all nodes located in the graph. Then, you can easily get not only the cost of connection between two nodes, but also find nodes that are between the start and end nodes.
+
+Dijkstra's algorithm uses two auxiliary node-related arrays, namely for storing an identifier of the previous node—the node from which the current node can be reached with the smallest overall cost, as well as the minimum distance (cost), which is necessary for accessing the current node. What is more, it uses the queue for storing nodes that should be checked. During the consecutive iterations, the algorithm updates the minimum distances to particular nodes in the graph. At the end, the auxiliary arrays contain the minimum distance (cost) to reach all the nodes from the chosen starting node, as well as information on how to reach each node using the shortest path.
+
+Before proceeding to the example, let's take a look at the following diagram presenting two various shortest paths found using Dijkstra's algorithm. The left-hand side shows the path from the node 8 to 1, while the right-hand side shows the path from the node 1 to 7:
+
+![](./images/10.png)
+
+It is high time that you see some C# code, which can be used to implement Dijkstra's algorithm. The main role is performed by the GetShortestPathDijkstra method, which should be added to the Graph class. The code is as follows:
+```c#
+public List<Edge<T>> GetShortestPathDijkstra( 
+    Node<T> source, Node<T> target) 
+{ 
+    int[] previous = new int[Nodes.Count]; 
+    Fill(previous, -1); 
+ 
+    int[] distances = new int[Nodes.Count]; 
+    Fill(distances, int.MaxValue); 
+    distances[source.Index] = 0; 
+ 
+    SimplePriorityQueue<Node<T>> nodes =  
+        new SimplePriorityQueue<Node<T>>(); 
+    for (int i = 0; i < Nodes.Count; i++) 
+    { 
+        nodes.Enqueue(Nodes[i], distances[i]); 
+    } 
+ 
+    while (nodes.Count != 0) 
+    { 
+        Node<T> node = nodes.Dequeue(); 
+        for (int i = 0; i < node.Neighbors.Count; i++) 
+        { 
+            Node<T> neighbor = node.Neighbors[i]; 
+            int weight = i < node.Weights.Count  
+                ? node.Weights[i] : 0; 
+            int weightTotal = distances[node.Index] + weight; 
+ 
+            if (distances[neighbor.Index] > weightTotal) 
+            { 
+                distances[neighbor.Index] = weightTotal; 
+                previous[neighbor.Index] = node.Index; 
+                nodes.UpdatePriority(neighbor,  
+                    distances[neighbor.Index]); 
+            } 
+        } 
+    } 
+ 
+    List<int> indices = new List<int>(); 
+    int index = target.Index; 
+    while (index >= 0) 
+    { 
+        indices.Add(index); 
+        index = previous[index]; 
+    } 
+ 
+    indices.Reverse(); 
+    List<Edge<T>> result = new List<Edge<T>>(); 
+    for (int i = 0; i < indices.Count - 1; i++) 
+    { 
+        Edge<T> edge = this[indices[i], indices[i + 1]]; 
+        result.Add(edge); 
+    } 
+    return result; 
+}
+```
+The GetShortestPathDijkstra method takes two parameters, namely source and target nodes. To start, it creates two node-related auxiliary arrays for storing the indices of previous nodes, from which the given node can be reached with the smallest overall cost (previous), as well as for storing the current minimum distances to the given node (distances). By default, the values of all elements in the previous array are set to -1, while in the distances array they are set to the maximum value of the int type. Of course, the distance to the source node is set to 0. Then, you create a new priority queue, and enqueue the data of all nodes. The priority of each element is equal to the current distance to such a node.
+
+It is worth noting that the example uses the OptimizedPriorityQueue package from NuGet. More information about this package is available at https://www.nuget.org/packages/OptimizedPriorityQueue and in the Priority queues section in Chapter 3, Stacks and Queues.
+The most interesting part of the code is the while loop which is executed until the queue is empty. Within the while loop, you get the first node from the queue and iterate through all of its neighbors using the for loop. Inside such a loop, you calculate the distance to a neighbor by taking the sum of the distance to the current node and the weight of the edge. If the calculated distance is smaller than the currently-stored value, you update the values regarding the minimum distance to the given neighbor, as well as the index of the previous node, from which you can reach the neighbor. It is worth noting that the priority of the element in the queue should be updated as well.
+
+The remaining operations are used to resolve the path using the values stored in the previous array. To do so, you save indices of the following nodes (in the opposite direction) in the indices list. Then, you reverse it to achieve the order from the source node to the target one. At the end, you just create the list of edges to present the result in the form suitable for returning from the method.
+
+The presented and described implementation is based on the pseudocode shown at https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm. You can find some additional information about Dijkstra's algorithm there.
+Let's take a look at the usage of the GetShortestPathDijkstra method:
+```c#
+Graph<int> graph = new Graph<int>(true, true); 
+Node<int> n1 = graph.AddNode(1); (...) 
+Node<int> n8 = graph.AddNode(8); 
+graph.AddEdge(n1, n2, 9); (...) 
+graph.AddEdge(n8, n5, 3); 
+List<Edge<int>> path = graph.GetShortestPathDijkstra(n1, n5); 
+path.ForEach(e => Console.WriteLine(e));
+```
+Here, you create a new directed and weighted graph, add nodes and edges, and call the GetShortestPathDijkstra method to search the shortest path between two nodes, namely between the nodes 1 and 5. As a result, you receive a list of edges forming the shortest path. Then, you just iterate through all edges and present the results in the console:
+
+    Edge: 1 -> 3, weight: 5
+    Edge: 3 -> 4, weight: 12
+    Edge: 4 -> 8, weight: 8
+    Edge: 8 -> 5, weight: 3
+After this short introduction, together with the simple example, let's proceed to the more advanced and interesting application related to game development. Let's go!
+
+
+**Example – game map**
+
+The last example shown in this chapter involves the application of Dijkstra's algorithm for finding the shortest path in a game map. Let's imagine that you have a board with various obstacles. For this reason, the player can use only part of the board to move. Your task is to find the shortest path between two places located on the board.
+
+To start, let's represent the board as a two-dimensional array where a given position on the board can be available for movement or not. The suitable part of code should be added to the Main method in the Program class, as follows:
+```c#
+string[] lines = new string[] 
+{ 
+    "0011100000111110000011111", 
+    "0011100000111110000011111", 
+    "0011100000111110000011111", 
+    "0000000000011100000011111", 
+    "0000001110000000000011111", 
+    "0001001110011100000011111", 
+    "1111111111111110111111100", 
+    "1111111111111110111111101", 
+    "1111111111111110111111100", 
+    "0000000000000000111111110", 
+    "0000000000000000111111100", 
+    "0001111111001100000001101", 
+    "0001111111001100000001100", 
+    "0001100000000000111111110", 
+    "1111100000000000111111100", 
+    "1111100011001100100010001", 
+    "1111100011001100001000100" 
+};
+
+bool[][] map = new bool[lines.Length][]; 
+for (int i = 0; i < lines.Length; i++) 
+{ 
+    map[i] = lines[i] 
+        .Select(c => int.Parse(c.ToString()) == 0) 
+        .ToArray(); 
+}
+```
+To improve the readability of code, the map is represented as an array of string values. Each row is presented as text, with the number of characters equal to the number of columns. The value of each character indicates the availability of the point. If it is equal to 0, the position is available. Otherwise, it is not. The string-based map representation should be then converted into the Boolean two-dimensional array. Such a task is performed by a few lines of code, as shown in the preceding snippet.
+
+The next step is the creation of the graph, as well as adding the necessary nodes and edges. The suitable part of code is presented as follows:
+```c#
+Graph<string> graph = new Graph<string>(false, true); 
+for (int i = 0; i < map.Length; i++) 
+{ 
+    for (int j = 0; j < map[i].Length; j++) 
+    { 
+        if (map[i][j]) 
+        { 
+            Node<string> from = graph.AddNode($"{i}-{j}"); 
+ 
+            if (i > 0 && map[i - 1][j]) 
+            { 
+                Node<string> to = graph.Nodes.Find( 
+                    n => n.Data == $"{i - 1}-{j}"); 
+                graph.AddEdge(from, to, 1); 
+            } 
+ 
+            if (j > 0 && map[i][j - 1]) 
+            { 
+                Node<string> to = graph.Nodes.Find( 
+                    n => n.Data == $"{i}-{j - 1}"); 
+                graph.AddEdge(from, to, 1); 
+            } 
+        } 
+    } 
+}
+```
+First, you initialize a new undirected and weighted graph. Then, you use two for loops to iterate through all places on the board. Within such loops, you check whether the given place is available. If so, you create a new node (from). Then, you check whether the node placed immediately above the current one is also available. If so, a suitable edge is added with the weight equal to 1. In a similar way you check whether the node placed on the left of the current one is available and add an edge, if necessary.
+
+Now you just need to get the Node instances representing the source and the target nodes. You can do it by using the Find method and providing the textual representation of the node, such as 0-0 or 16-24. Then, you just call the GetShortestPathDijkstra method. In this case, the algorithm will try to find the shortest path between the node in the first row and column and the node in the last row and column. The code is as follows:
+```c#
+Node<string> source = graph.Nodes.Find(n => n.Data == "0-0"); 
+Node<string> target = graph.Nodes.Find(n => n.Data == "16-24"); 
+List<Edge<string>> path = graph.GetShortestPathDijkstra( 
+   source, target);
+```
+The last part of code is related to the presentation of the map in the console:
+```c#
+Console.OutputEncoding = Encoding.UTF8; 
+for (int row = 0; row < map.Length; row++) 
+{ 
+    for (int column = 0; column < map[row].Length; column++) 
+    { 
+        ConsoleColor color = map[row][column]  
+            ? ConsoleColor.Green : ConsoleColor.Red; 
+        if (path.Any(e => e.From.Data == $"{row}-{column}"  
+            || e.To.Data == $"{row}-{column}")) 
+        { 
+            color = ConsoleColor.White; 
+        } 
+ 
+        Console.ForegroundColor = color; 
+        Console.Write("\u25cf "); 
+    } 
+    Console.WriteLine(); 
+}
+
+Console.ForegroundColor = ConsoleColor.Gray;
+```
+To start, you set the proper encoding in the console to be able to present Unicode characters as well. Then, you use two for loops to iterate through all places on the board. Inside such loops, you choose a color that should be used to represent a point in the console, either green (the point is available) or red (unavailable). If the currently-analyzed point is a part of the shortest path, the color is changed to white. At the end, you just set a proper color and write the Unicode character representing a bullet. When the program execution exits both loops, the default console color is set.
+
+When you run the application, you will see the following result:
+![](./images/11.png)
+
+Great work! Now, let's proceed to a short summary to conclude the topics you have learnt about while reading the current chapter.
+
+**Summary**
+
+You have just completed the chapter related to one of the most important data structures available while developing applications, namely graphs. As you have learnt, a graph is a data structure that consists of nodes and edges. Each edge connects two nodes. What is more, there are various variants of edges in a graph, such as undirected and directed, as well as unweighted and weighted. All of them have been described and explained in detail, together with diagrams and code samples. Two methods of graph representation, namely using an adjacency list and an adjacency matrix, have been explained as well. Of course, you have also learnt how to implement a graph using the C# language.
+
+While talking about graphs, is also important to present some real-world applications, especially due to the common use of such a data structure. For example, the chapter contains the description of the structure of friends available in social media or the problem of searching for the shortest path in a city.
+
+Among the topics in this chapter, you have got to know how to traverse a graph, that is, visit all of the nodes in some particular order. Two approaches have been presented, namely DFS and BFS. It is worth mentioning that the traversal topic can be also applied for searching for a given node in a graph.
+
+In one of the other sections, the subject of a spanning tree, as well as a minimum spanning tree, was introduced. As a reminder, a spanning tree is a subset of edges that connects all nodes in a graph without cycles, while a MST is a spanning tree with the minimum cost from all spanning trees available in the graph. There are a few approaches to finding the MST, including the application of Kruskal's or Prim's algorithms.
+
+Then, you learnt solutions for the next two popular graph-related problems. The first was the coloring of nodes, where you needed to assign colors (numbers) to all nodes to comply with the rule that there cannot be an edge between two nodes with the same color. Of course, the number of colors should have been as low as possible.
+
+The other problem was searching for the shortest path between two nodes, which took into account a specific cost, such as the distance, the necessary time, or even the amount of fuel required. There are several approaches to the topic of searching for the shortest path in a graph. However, one of the common solutions is Dijkstra's algorithm, which makes it possible to calculate the distance from a starting node to all nodes located in the graph. This topic has been presented and explained within this chapter.
+
+Now, it is the high time to proceed to the overall summary to take a look at all of the data structures and algorithms that have been presented in the book so far. Let's turn the page and proceed to the last chapter!
+
+While reading many pages of this book, you have learned a lot about various data structures and algorithms that you can use while developing applications in the C# language. Arrays, lists, stacks, queues, dictionaries, hash sets, trees, heaps, and graphs, as well as accompanying algorithms—it's quite a broad range of subjects, isn't it? Now it is high time to summarize this knowledge, as well as to remind you about some specific applications for particular structures.
+
+First, you will see a brief classification of data structures, divided into two groups, namely linear and non-linear. Then, the topic of diversity of applications of various data structures is taken into account. You will see a short summary of each described data structure, as well as information about some problems which can be solved with the use of a particular data structure.
+
+Are you ready to start reading the last chapter? If so, let's enjoy it and see how many topics you have learned while reading all the previous chapters. Let's go!
+
+In this chapter, the following topics will be covered:
+
+- Classification of data structures
+- Diversity of applications
